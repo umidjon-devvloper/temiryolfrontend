@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addSubmission } from "@/lib/firebase/submissions-service";
 import { appendFuelRecordForErjuJu } from "@/lib/firebase/fuel-record-writer";
 import { getSession } from "@/lib/utils/session";
+import { resolveNodeId } from "@/lib/data/uzellar";
 import { parsePdfNumber } from "@/lib/utils/pdf-number";
 import { savePendingSubmission } from "@/lib/offline/offline-storage";
 import { SERIYA_LIST, TAMIRLASH_TURI_LIST } from "@/lib/data/sections-config";
@@ -53,7 +54,7 @@ export default function TamirlashForm({ stationId, onSaved }: TamirlashFormProps
       const submissionData = {
         staffCode: session.code,
         staffName: session.displayName,
-        nodeId: session.nodeId!,
+        nodeId: resolveNodeId(stationId, session.nodeId) ?? "",
         stationId: stationId,
         category: 'tamirlash',
         seriya: formData.seriya,

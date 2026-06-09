@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, FileText,
   AlertTriangle, Users, UserCog, Menu, X,
-  LogOut, ChevronLeft, ChevronRight, Bell, Home, ShieldCheck
+  LogOut, ChevronLeft, ChevronRight, Bell, Home
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -89,13 +89,6 @@ export default function AdminLayout({ children, hideHeader = false }: AdminLayou
       href: '/admin/overlimit',
       roles: ['admin'],
       color: { bg: 'bg-red-500', bgHover: 'hover:bg-red-600', grad: 'from-red-600 to-rose-600', glow: 'shadow-red-600/50' },
-    },
-    {
-      title: 'Ruxsatnomalar',
-      icon: ShieldCheck,
-      href: '/admin/approvals',
-      roles: ['admin'],
-      color: { bg: 'bg-emerald-500', bgHover: 'hover:bg-emerald-600', grad: 'from-emerald-600 to-teal-600', glow: 'shadow-emerald-600/50' },
     },
     {
       type: 'logout',

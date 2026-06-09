@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { addSubmission } from "@/lib/firebase/submissions-service";
 import { appendFuelRecordForErjuJu } from "@/lib/firebase/fuel-record-writer";
 import { getSession } from "@/lib/utils/session";
+import { resolveNodeId } from "@/lib/data/uzellar";
 import { savePendingSubmission } from "@/lib/offline/offline-storage";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -69,7 +70,7 @@ export default function KorxonaForm({ stationId, onSaved }: KorxonaFormProps) {
       const submissionData = {
         staffCode: session.code,
         staffName: session.displayName,
-        nodeId: session.nodeId!,
+        nodeId: resolveNodeId(stationId, session.nodeId) ?? "",
         stationId: stationId,
         category: 'korxona',
         korxonaNomi: KORXONA_DEFAULT_NOMI,

@@ -78,3 +78,15 @@ export const ZAPRAVKALAR: Zapravka[] = [
   { id: "darband", uzelId: "rju-termiz", name: "Darband", slug: "darband" },
   { id: "qumqurgon", uzelId: "rju-termiz", name: "Qumqurg'on", slug: "qumqurgon" }
 ];
+
+/**
+ * Zapravka (stationId) bo'yicha uzel (nodeId) ni topadi.
+ * Backend submission schema'si nodeId ni majburiy qiladi; session.nodeId
+ * ba'zi foydalanuvchilarda (operator, qo'lda qo'shilgan xodim) null bo'lishi
+ * mumkin — shuning uchun avval statik zapravka→uzel jadvalidan olamiz,
+ * keyin session.nodeId ga qaytamiz.
+ */
+export function resolveNodeId(stationId: string, fallback?: string | null): string | null {
+  const zapravka = ZAPRAVKALAR.find((z) => z.id === stationId);
+  return zapravka?.uzelId ?? fallback ?? null;
+}

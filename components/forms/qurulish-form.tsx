@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { addSubmission } from "@/lib/firebase/submissions-service";
 import { appendFuelRecordForErjuJu } from "@/lib/firebase/fuel-record-writer";
 import { getSession } from "@/lib/utils/session";
+import { resolveNodeId } from "@/lib/data/uzellar";
 import { parsePdfNumber } from "@/lib/utils/pdf-number";
 import { savePendingSubmission } from "@/lib/offline/offline-storage";
 import { Loader2 } from "lucide-react";
@@ -53,7 +54,7 @@ export default function QurulishForm({ stationId, onSaved }: QurulishFormProps) 
       const submissionData = {
         staffCode: session.code,
         staffName: session.displayName,
-        nodeId: session.nodeId!,
+        nodeId: resolveNodeId(stationId, session.nodeId) ?? "",
         stationId,
         category: "qurulish",
         seriya: formData.seriya.trim(),

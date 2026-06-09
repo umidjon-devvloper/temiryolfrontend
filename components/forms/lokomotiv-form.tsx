@@ -15,6 +15,7 @@ import {
 } from "@/lib/firebase/lokomotiv-rusum-service";
 import { getSession } from "@/lib/utils/session";
 import { parsePdfNumber } from "@/lib/utils/pdf-number";
+import { resolveNodeId } from "@/lib/data/uzellar";
 import { savePendingSubmission } from "@/lib/offline/offline-storage";
 import { HarakatTuri, Rusumi, LokomotivSubmission } from "@/lib/types";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
@@ -459,7 +460,7 @@ export default function LokomotivForm({ stationId, onSaved }: LokomotivFormProps
     const submissionData: Omit<LokomotivSubmission, 'id' | 'timestamp' | 'createdAt'> = {
       staffCode: session.code,
       staffName: session.displayName,
-      nodeId: session.nodeId!,
+      nodeId: resolveNodeId(stationId, session.nodeId) ?? "",
       stationId: stationId,
       category: 'lokomotiv',
       harakatTuri: formData.harakatTuri as HarakatTuri,
@@ -514,7 +515,12 @@ export default function LokomotivForm({ stationId, onSaved }: LokomotivFormProps
           setError("Saqlab bo'lmadi: " + (err.message || "Noma'lum xato"));
         }
       } else {
-        setError("Xato yuz berdi: " + (err.message || err.code || "Noma'lum"));
+        // Backend validatsiya xatosida qaysi maydon noto'g'ri ekanini ko'rsatamiz
+        const fieldErrors = err?.details && typeof err.details === "object"
+          ? Object.keys(err.details as Record<string, unknown>).join(", ")
+          : "";
+        const detail = fieldErrors ? ` (maydonlar: ${fieldErrors})` : "";
+        setError("Xato yuz berdi: " + (err.message || err.code || "Noma'lum") + detail);
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
