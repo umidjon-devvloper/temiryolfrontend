@@ -311,6 +311,20 @@ function buildErjuReportTitle(start: Date, end: Date): string {
 
 // ─── Barcha yozuvlarni cursor-pagination bilan olish ─────────────────────────
 
+/**
+ * Backend Mongo hujjatlarni `_id` bilan qaytaradi. Frontend esa hamma joyda
+ * `sub.id` ishlatadi (delete/edit URL, React key). Normalizatsiya qilinmasa
+ * `id` = undefined bo'lib, o'chirish/tahrirlash `/submissions/undefined` ga
+ * boradi va ishlamaydi.
+ */
+function normalizeSubmissionId(s: any): Submission {
+  if (s && s.id == null && s._id != null) {
+    const { _id, ...rest } = s;
+    return { id: String(_id), ...rest } as Submission;
+  }
+  return s as Submission;
+}
+
 async function fetchSubmissionsInRangeByBounds(
   startMs: number,
   endMs: number,
@@ -325,7 +339,7 @@ async function fetchSubmissionsInRangeByBounds(
       endDate: endISO,
       limit: 10000,
     });
-    return res.items;
+    return res.items.map(normalizeSubmissionId);
   } catch (err) {
     console.warn("fetchSubmissionsInRangeByBounds:", err);
     return [];
@@ -941,7 +955,7 @@ export default function HisobotlarPage() {
       try {
         const res = await api.get<{ ok: true; items: Submission[] }>("/submissions", { limit: 1000 });
         if (cancelled) return;
-        setGlobalSubs(res.items.filter((sub) => isInDateRange(sub, start, end)));
+        setGlobalSubs(res.items.map(normalizeSubmissionId).filter((sub) => isInDateRange(sub, start, end)));
         setGlobalLoading(false);
       } catch (error) {
         console.error(error);

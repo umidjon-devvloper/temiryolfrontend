@@ -515,7 +515,11 @@ export default function LokomotivRecentTable({ stationId }: LokomotivRecentTable
           limit: 500,
         });
         if (cancelled) return;
-        const today = res.items.filter((s) => {
+        // Backend `_id` qaytaradi; tahrirlash uchun `id` bo'lishi shart
+        const items = res.items.map((s: any) =>
+          s && s.id == null && s._id != null ? { ...s, id: String(s._id) } : s,
+        );
+        const today = items.filter((s) => {
           const raw = (s as { timestamp?: unknown; timestampMs?: number }).timestamp ??
             (s as { timestampMs?: number }).timestampMs;
           const ts = typeof raw === "number"
