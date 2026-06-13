@@ -80,7 +80,7 @@ export interface LokomotivSubmission {
   rusumi: Rusumi; 
   lokomotivNumber: string; 
   jadval?: string;              // yuk/manyovr/yo'lovchi uchun qo'shimcha select
-  zagranitsa?: number;           // Y.PDF dagi zagranitsa ustuni uchun ixtiyoriy qiymat
+  zagranitsa?: string | number;  // Y.PDF dagi zagranitsa ustuni uchun ixtiyoriy qiymat (matn yoki son)
   poyezdNumber?: string;        // ixtiyoriy (manyovrda yo'q)
   ruxsatIndeksi?: string;       // ruxsat indeksi
   poyezdVazni?: number;         // faqat YUK uchun

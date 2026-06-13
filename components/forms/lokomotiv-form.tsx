@@ -467,7 +467,10 @@ export default function LokomotivForm({ stationId, onSaved }: LokomotivFormProps
       rusumi: formData.rusumi as Rusumi,
       lokomotivNumber: formData.lokomotivNumber,
       jadval: formData.jadval || undefined,
-      zagranitsa: formData.zagranitsa ? parsePdfNumber(formData.zagranitsa) : undefined,
+      // Zagranitsa'ni matn sifatida yuboramiz — backend uni String maydonda saqlaydi
+      // va eski/yangi validator ham matnni qabul qiladi (son sifatida yuborilsa
+      // eski backend "noto'g'ri" deb rad etardi).
+      zagranitsa: formData.zagranitsa.trim() || undefined,
       poyezdNumber: formData.poyezdNumber || undefined,
       ruxsatIndeksi: formData.ruxsatIndeksi || undefined,
       poyezdVazni: formData.poyezdVazni ? parsePdfNumber(formData.poyezdVazni) : undefined,
