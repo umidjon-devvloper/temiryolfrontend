@@ -20,11 +20,12 @@ function normalize(s: SubmissionWithMeta): Submission {
 
 // Yangi yozuv qo'shish
 export async function addSubmission(category: Category, data: Record<string, unknown>) {
-  const res = await api.post<{ ok: true; submission: SubmissionWithMeta }>(
+  // Backend `{ ok, id }` qaytaradi; eski/boshqa shakllarga ham chidamli bo'lamiz
+  const res = await api.post<{ ok: true; id?: string; submission?: SubmissionWithMeta }>(
     `${PATH}/${category}`,
     data,
   );
-  return res.submission._id ?? res.submission.id ?? "";
+  return String(res.id ?? res.submission?._id ?? res.submission?.id ?? "");
 }
 
 // Ishchining oxirgi yozuvlarini olish

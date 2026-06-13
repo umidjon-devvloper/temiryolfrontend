@@ -12,12 +12,14 @@ export async function updateSubmissionWithSummary(
   submission: Submission,
   changes: SubmissionPatch,
 ): Promise<Submission> {
-  // Backend yangilashni va summary'ni o'zi qiladi
-  const res = await api.patch<{ ok: true; submission: Submission }>(
+  // Backend yangilashni va summary'ni o'zi qiladi; javobda faqat `{ id, ok }`
+  // qaytadi (to'liq hujjat emas), shuning uchun yangilangan obyektni mahalliy
+  // birlashtiramiz. Agar backend `submission` qaytarsa — o'shani ishlatamiz.
+  const res = await api.patch<{ ok: true; submission?: Submission }>(
     `${PATH}/${encodeURIComponent(submission.id)}`,
     changes,
   );
-  return res.submission;
+  return res?.submission ?? ({ ...submission, ...changes } as Submission);
 }
 
 export async function updateSubmissionByIdWithSummary(
@@ -25,11 +27,11 @@ export async function updateSubmissionByIdWithSummary(
   changes: SubmissionPatch,
 ): Promise<Submission | null> {
   try {
-    const res = await api.patch<{ ok: true; submission: Submission }>(
+    const res = await api.patch<{ ok: true; submission?: Submission }>(
       `${PATH}/${encodeURIComponent(id)}`,
       changes,
     );
-    return res.submission;
+    return res?.submission ?? ({ ...changes, id } as unknown as Submission);
   } catch {
     return null;
   }

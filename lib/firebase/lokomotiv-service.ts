@@ -25,11 +25,12 @@ function normalize(s: LokomotivWithMeta): LokomotivSubmission {
 export async function addLokomotivSubmission(
   data: Omit<LokomotivSubmission, "id" | "timestamp" | "createdAt">,
 ) {
-  const res = await api.post<{ ok: true; submission: LokomotivWithMeta }>(
+  // Backend `{ ok, id }` qaytaradi; eski/boshqa shakllarga ham chidamli bo'lamiz
+  const res = await api.post<{ ok: true; id?: string; submission?: LokomotivWithMeta }>(
     `${PATH}/lokomotiv`,
     data,
   );
-  return String(res.submission._id ?? res.submission.id ?? "");
+  return String(res.id ?? res.submission?._id ?? res.submission?.id ?? "");
 }
 
 // Ishchining oxirgi yozuvlarini olish
