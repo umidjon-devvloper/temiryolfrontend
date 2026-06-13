@@ -17,10 +17,11 @@ export function CodeInput({ code, onChange, error }: CodeInputProps) {
   }, []);
 
   const handleChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    // Harf yoki raqam — aralash kodlarga ruxsat
+    if (!/^[a-zA-Z0-9]*$/.test(value)) return;
 
     const newCode = [...code];
-    newCode[index] = value.slice(-1);
+    newCode[index] = value.slice(-1).toUpperCase();
     onChange(newCode);
 
     if (value && index < 3) {
@@ -43,13 +44,14 @@ export function CodeInput({ code, onChange, error }: CodeInputProps) {
             key={i}
             ref={(el) => { inputs.current[i] = el; }}
             type="text"
-            inputMode="numeric"
-            pattern="\d*"
+            inputMode="text"
+            autoCapitalize="characters"
+            autoComplete="off"
             maxLength={1}
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
-            aria-label={`Kod raqami ${i + 1}`}
+            aria-label={`Kod belgisi ${i + 1}`}
             aria-invalid={error ? "true" : "false"}
             className={`h-16 w-full text-center text-2xl font-black sm:h-[4.5rem] sm:text-3xl rounded-2xl border-2 shadow-sm transition-all duration-150 outline-none focus:scale-[1.03] ${
               error

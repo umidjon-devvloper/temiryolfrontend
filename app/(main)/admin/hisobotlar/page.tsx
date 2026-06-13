@@ -1070,6 +1070,10 @@ export default function HisobotlarPage() {
         } else {
           exportPDF(globalFiltered, fileSlug, titleLine, staffMap);
         }
+      } catch (err) {
+        // Avval xato jim yutilardi (catch yo'q edi) — PDF yuklanmay qolardi.
+        console.error('Umumiy PDF:', err);
+        window.alert('PDF tayyorlashda xato: ' + ((err as Error)?.message ?? "Noma'lum xato"));
       } finally {
         setGlobalPdfLoading(false);
       }
@@ -1288,6 +1292,7 @@ export default function HisobotlarPage() {
       downloadErjuYpdf(sourceRows, title, [], []);
     } catch (err) {
       console.error('Y.PDF:', err);
+      window.alert('Y.PDF tayyorlashda xato: ' + ((err as Error)?.message ?? "Noma'lum xato"));
     } finally {
       setGlobalErjuPdfLoading(false);
     }

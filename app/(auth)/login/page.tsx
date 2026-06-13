@@ -162,7 +162,7 @@ export default function LoginPage() {
                   Tizimga kirish
                 </h2>
                 <p className="mt-2 text-sm font-semibold leading-6 text-[#667085]">
-                  Maxsus 4 xonali kodni kiriting va ish paneliga o&apos;ting.
+                  Maxsus 4 belgili kodni kiriting va ish paneliga o&apos;ting.
                 </p>
               </div>
 

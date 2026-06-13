@@ -104,7 +104,8 @@ const HARAKAT_RUSUM_CARD: Record<HarakatTuri, string> = {
 };
 
 function normalizeLoginCode(value: string) {
-  return value.replace(/\D/g, "").slice(0, 4);
+  // Harf yoki raqam — aralash kodlarga ruxsat; katta harfga keltiramiz
+  return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 4);
 }
 
 function staticRusumEditId(value: string): string {
@@ -605,12 +606,13 @@ export default function StaffVaultModal({
                     </p>
                     <div>
                       <label className="ml-1 text-[10px] font-bold uppercase text-slate-400">
-                        Parol/kod (4 raqam)
+                        Parol/kod (4 belgi)
                       </label>
                       <input
                         value={newStaffTabel}
                         onChange={(e) => setNewStaffTabel(normalizeLoginCode(e.target.value))}
-                        inputMode="numeric"
+                        inputMode="text"
+                        autoCapitalize="characters"
                         maxLength={4}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
@@ -705,7 +707,8 @@ export default function StaffVaultModal({
                                   tabel: normalizeLoginCode(e.target.value),
                                 }))
                               }
-                              inputMode="numeric"
+                              inputMode="text"
+                              autoCapitalize="characters"
                               maxLength={4}
                               placeholder="Tabel"
                               className="w-24 rounded-lg border border-white/10 bg-[#0d1424] px-2 py-1.5 text-xs text-white"

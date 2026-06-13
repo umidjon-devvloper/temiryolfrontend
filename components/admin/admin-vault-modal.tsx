@@ -19,7 +19,8 @@ type AdminVaultModalProps = {
 };
 
 function normalizeCode(value: string) {
-  return value.replace(/\D/g, "").slice(0, 4);
+  // Harf yoki raqam — aralash kodlarga ruxsat; katta harfga keltiramiz
+  return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 4);
 }
 
 export default function AdminVaultModal({
@@ -153,9 +154,10 @@ export default function AdminVaultModal({
               <input
                 value={code}
                 onChange={(e) => setCode(normalizeCode(e.target.value))}
-                inputMode="numeric"
+                inputMode="text"
+                autoCapitalize="characters"
                 maxLength={4}
-                placeholder="1234"
+                placeholder="A12B"
                 className="mt-1 h-12 w-full rounded-2xl border border-white/10 bg-[#111a2d] px-4 text-xl font-black tracking-[0.35em] text-white outline-none focus:border-violet-400"
               />
             </div>
