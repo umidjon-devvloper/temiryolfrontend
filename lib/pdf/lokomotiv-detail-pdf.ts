@@ -6,6 +6,7 @@ import { FIELDS_VISIBILITY } from "@/lib/data/lokomotiv-config";
 import { formatPdfNumber, parsePdfNumber } from "@/lib/utils/pdf-number";
 import { pdfText } from "@/lib/utils/pdf-text";
 import { PDF_CYRILLIC_FONT, useCyrillicPdfFont } from "@/lib/pdf/cyrillic-font";
+import { savePdfDocument } from "@/lib/pdf/save-pdf";
 import type { HarakatTuri } from "@/lib/types";
 
 const HARAKAT_LABEL: Record<string, string> = {
@@ -383,7 +384,7 @@ export function exportLokomotivDetailPdf(
   }
 
   const safeSlug = fileSlug.replace(/[^\w.-]+/g, "_");
-  doc.save(`lokomotiv_${safeSlug}.pdf`);
+  savePdfDocument(doc, `lokomotiv_${safeSlug}.pdf`);
 }
 
 function lokomotivInputHarakat(row: any): HarakatTuri | "" {
@@ -605,7 +606,7 @@ export function exportLokomotivInputPdf(
   }
 
   const safeSlug = fileSlug.replace(/[^\w.-]+/g, "_");
-  doc.save(`lokomotiv_${safeSlug}.pdf`);
+  savePdfDocument(doc, `lokomotiv_${safeSlug}.pdf`);
 }
 
 export function exportStroitelstvoInputPdf(
@@ -788,7 +789,7 @@ export function exportStroitelstvoInputPdf(
   doc.text(`Jami berilgan yoqilg'i: ${formatPdfNumber(totalFuel)} kg`, tableMarginX, footerY);
 
   const safeSlug = fileSlug.replace(/[^\w.-]+/g, "_");
-  doc.save(`stroitelstvo_${safeSlug}.pdf`);
+  savePdfDocument(doc, `stroitelstvo_${safeSlug}.pdf`);
 }
 
 export function exportRemontInputPdf(
@@ -977,7 +978,7 @@ export function exportRemontInputPdf(
   }
 
   const safeSlug = fileSlug.replace(/[^\w.-]+/g, "_");
-  doc.save(`remont_${safeSlug}.pdf`);
+  savePdfDocument(doc, `remont_${safeSlug}.pdf`);
 }
 
 type DetailCategory = "korxona" | "qurulish" | "tamirlash";
@@ -1285,5 +1286,5 @@ export function exportCategoryDetailPdf(
   }
 
   const safeSlug = fileSlug.replace(/[^\w.-]+/g, "_");
-  doc.save(`${config.filePrefix}_${safeSlug}.pdf`);
+  savePdfDocument(doc, `${config.filePrefix}_${safeSlug}.pdf`);
 }

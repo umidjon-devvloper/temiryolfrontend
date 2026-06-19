@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ERJU_STAFF_GROUPS } from "@/lib/data/staff-erju-data";
+import { ZAPRAVKALAR } from "@/lib/data/uzellar";
 import {
   subscribeStaff,
   addStaffDoc,
@@ -37,12 +38,14 @@ import {
   PlusCircle,
   TrainFront,
   CheckCircle2,
+  UserPlus,
 } from "lucide-react";
 
 export type StaffVaultModalProps = {
   open: boolean;
   onClose: () => void;
   rusumOpenRequest?: number;
+  operatorOpenRequest?: number;
   blockedCodes: Set<string>;
   /** Tabel raqam = kirish kodi sifatida blocked_codes ga yoziladi */
   onBlockByTabel: (tabel: string, note: string) => Promise<void>;
@@ -124,6 +127,7 @@ export default function StaffVaultModal({
   open,
   onClose,
   rusumOpenRequest = 0,
+  operatorOpenRequest = 0,
   blockedCodes,
   onBlockByTabel,
   onUnblockByTabel,
@@ -140,6 +144,10 @@ export default function StaffVaultModal({
     zapravka: "",
   });
   const [busy, setBusy] = useState(false);
+  const [operatorModalOpen, setOperatorModalOpen] = useState(false);
+  const [operatorCode, setOperatorCode] = useState("");
+  const [operatorName, setOperatorName] = useState("");
+  const [operatorStationId, setOperatorStationId] = useState("");
   const [rusumModalOpen, setRusumModalOpen] = useState(false);
   const [rusumSettings, setRusumSettings] = useState<LokomotivRusumSettings>({
     items: [],
@@ -171,6 +179,11 @@ export default function StaffVaultModal({
   }, [open, rusumOpenRequest]);
 
   useEffect(() => {
+    if (!open || !operatorOpenRequest) return;
+    setOperatorModalOpen(true);
+  }, [open, operatorOpenRequest]);
+
+  useEffect(() => {
     if (!open) return;
     return subscribeLokomotivRusumSettings(setRusumSettings);
   }, [open]);
@@ -192,6 +205,14 @@ export default function StaffVaultModal({
   const erjuAllStaff = useMemo(() => {
     return staffList.filter((s) => s.erju === selectedErju);
   }, [staffList, selectedErju]);
+
+  const operatorStations = useMemo(() => ZAPRAVKALAR.slice(0, 20), []);
+
+  const operatorStaff = useMemo(() => {
+    return staffList.filter(
+      (staff) => staff.role === "operator" || staff.erju === "Operator",
+    );
+  }, [staffList]);
 
   const customRusumlar = rusumSettings.items;
 
@@ -216,6 +237,10 @@ export default function StaffVaultModal({
     setNewStaffName("");
     setNewStaffTabel("");
     setEditingStaffId(null);
+    setOperatorModalOpen(false);
+    setOperatorCode("");
+    setOperatorName("");
+    setOperatorStationId("");
     setRusumModalOpen(false);
     setNewRusumName("");
     setNewRusumCode("");
@@ -265,6 +290,40 @@ export default function StaffVaultModal({
       });
       setNewStaffName("");
       setNewStaffTabel("");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const addOperator = async () => {
+    const code = operatorCode.trim();
+    const fullName = operatorName.trim();
+    const station = operatorStations.find((item) => item.id === operatorStationId);
+
+    if (!code || !fullName || !station) return;
+    if (code.length < 3) {
+      window.alert("Operator kodi kamida 3 belgi bo'lishi kerak.");
+      return;
+    }
+    const duplicate = staffList.find((staff) => staff.tabelNumber.trim() === code);
+    if (duplicate) {
+      window.alert("Bu kod allaqachon mavjud!");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await addStaffDoc({
+        erju: "Operator",
+        zapravka: `${station.name} zapravka`,
+        tabelNumber: code,
+        fullName,
+        role: "operator",
+        stationId: station.id,
+      });
+      setOperatorCode("");
+      setOperatorName("");
+      setOperatorStationId("");
     } finally {
       setBusy(false);
     }
@@ -518,6 +577,15 @@ export default function StaffVaultModal({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOperatorModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-sky-300/30 bg-sky-600 px-3 py-2 text-xs font-black uppercase text-white shadow-lg shadow-sky-900/20 transition-all hover:bg-sky-500"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span className="hidden sm:inline">Operator qo&apos;shish</span>
+              <span className="sm:hidden">Operator</span>
+            </button>
             <button
               type="button"
               onClick={() => setRusumModalOpen(true)}
@@ -810,6 +878,136 @@ export default function StaffVaultModal({
             )}
           </div>
         </div>
+
+        {operatorModalOpen && (
+          <div className="absolute inset-0 z-[520] flex items-center justify-center bg-slate-950/78 p-3 backdrop-blur-sm sm:p-5">
+            <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-sky-300/35 bg-gradient-to-br from-slate-950 via-[#0b2447] to-[#052e4f] shadow-2xl shadow-sky-950/50">
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-sky-300/25 bg-gradient-to-r from-sky-700 via-blue-700 to-indigo-700 px-4 py-3 sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-sky-700 shadow-lg shadow-sky-950/25">
+                    <UserPlus className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-black uppercase tracking-wide text-white">
+                      Operator qo&apos;shish
+                    </h3>
+                    <p className="truncate text-[11px] font-semibold text-sky-50/85">
+                      Operator kodi, F.I.Sh va biriktirilgan zapravkani kiriting
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOperatorModalOpen(false)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-950/25 hover:bg-red-600"
+                  aria-label="Yopish"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                  <div className="space-y-4 rounded-2xl border border-sky-300/20 bg-white/10 p-4 shadow-xl shadow-black/15">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-sky-100">
+                          Operator kodi
+                        </label>
+                        <input
+                          value={operatorCode}
+                          onChange={(e) => setOperatorCode(normalizeLoginCode(e.target.value))}
+                          inputMode="text"
+                          autoCapitalize="characters"
+                          maxLength={4}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void addOperator();
+                            }
+                          }}
+                          placeholder="1777"
+                          className="w-full rounded-xl border border-sky-200/30 bg-slate-950/70 px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-400/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-sky-100">
+                          Zapravka
+                        </label>
+                        <select
+                          value={operatorStationId}
+                          onChange={(e) => setOperatorStationId(e.target.value)}
+                          className="w-full rounded-xl border border-sky-200/30 bg-slate-950/70 px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-400/20"
+                        >
+                          <option value="">Tanlang...</option>
+                          {operatorStations.map((station) => (
+                            <option key={station.id} value={station.id}>
+                              {station.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-sky-100">
+                        Ism familiya
+                      </label>
+                      <input
+                        value={operatorName}
+                        onChange={(e) => setOperatorName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addOperator();
+                          }
+                        }}
+                        placeholder="Ism Familya"
+                        className="w-full rounded-xl border border-sky-200/30 bg-slate-950/70 px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-400/20"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => void addOperator()}
+                      disabled={busy || !operatorCode.trim() || !operatorName.trim() || !operatorStationId}
+                      className="w-full rounded-xl bg-sky-500 py-3 text-sm font-black uppercase text-white shadow-lg shadow-sky-950/30 transition-all hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Operatorni saqlash
+                    </button>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4">
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-sky-100">
+                      Operatorlar: {operatorStaff.length}
+                    </p>
+                    <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+                      {operatorStaff.length === 0 ? (
+                        <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-6 text-center text-xs font-bold text-slate-300">
+                          Hozircha operator yo&apos;q
+                        </p>
+                      ) : (
+                        operatorStaff.map((staff) => (
+                          <div key={staff.id} className="rounded-xl border border-white/10 bg-slate-950/45 px-3 py-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="break-words text-sm font-black text-white">{staff.fullName}</p>
+                                <p className="mt-0.5 text-[11px] font-bold text-sky-200">{staff.zapravka}</p>
+                              </div>
+                              <span className="shrink-0 rounded-full bg-sky-400/20 px-2 py-0.5 font-mono text-[10px] font-black text-sky-100">
+                                #{staff.tabelNumber}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {rusumModalOpen && (
           <div className="absolute inset-0 z-[520] flex items-center justify-center bg-slate-950/78 p-3 backdrop-blur-sm sm:p-5">

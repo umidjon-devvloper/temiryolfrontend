@@ -9,6 +9,7 @@ import { ZAPRAVKALAR } from '@/lib/data/uzellar';
 import { PDF_CYRILLIC_FONT, useCyrillicPdfFont } from '@/lib/pdf/cyrillic-font';
 import { formatPdfNonZeroNumber, parsePdfNumber } from '@/lib/utils/pdf-number';
 import { pdfText } from '@/lib/utils/pdf-text';
+import { savePdfDocument } from '@/lib/pdf/save-pdf';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -879,5 +880,5 @@ export function downloadErjuYpdf(
   }
 
   const slug = cyrToLat(reportTitle).slice(0, 40).replace(/[^\w\s]/g, '').replace(/\s+/g, '_');
-  doc.save(`y_pdf_${slug}.pdf`);
+  savePdfDocument(doc, `y_pdf_${slug}.pdf`);
 }

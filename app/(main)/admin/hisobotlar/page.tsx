@@ -37,6 +37,7 @@ import { clearSession, getSession } from '@/lib/utils/session';
 import { pdfText } from '@/lib/utils/pdf-text';
 import { formatPdfNonZeroNumber, formatPdfNumber, parsePdfNumber } from '@/lib/utils/pdf-number';
 import { PDF_CYRILLIC_FONT, useCyrillicPdfFont } from '@/lib/pdf/cyrillic-font';
+import { savePdfDocument } from '@/lib/pdf/save-pdf';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -534,7 +535,7 @@ function exportTamirlashPDF(rows: any[], fileSlug: string, reportTitleLine: stri
   doc.setFont('helvetica', 'bold');
   doc.text(`Jami yoqilg'i: ${formatPdfNumber(totalFuel)} kg`, 14, fY + 8);
   if (totalMasla > 0) doc.text(`Jami diz masla: ${formatPdfNumber(totalMasla)} kg`, 14, fY + 14);
-  doc.save(`tamirlash_${fileSlug}.pdf`);
+  savePdfDocument(doc, `tamirlash_${fileSlug}.pdf`);
 }
 
 function exportKorxonaPDF(rows: any[], fileSlug: string, reportTitleLine: string, staffMap?: Map<string, string>, showDateGroups = false) {
@@ -608,7 +609,7 @@ function exportKorxonaPDF(rows: any[], fileSlug: string, reportTitleLine: string
   const fY = (doc as any).lastAutoTable?.finalY ?? 100;
   doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text(`Jami berildi: ${formatPdfNumber(total)} kg`, 14, fY + 8);
-  doc.save(`korxona_${fileSlug}.pdf`);
+  savePdfDocument(doc, `korxona_${fileSlug}.pdf`);
 }
 
 function exportQurulishPDF(rows: any[], fileSlug: string, reportTitleLine: string, staffMap?: Map<string, string>, showDateGroups = false) {
@@ -708,7 +709,7 @@ function exportQurulishPDF(rows: any[], fileSlug: string, reportTitleLine: strin
   const fY = (doc as any).lastAutoTable?.finalY ?? 100;
   doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text(`Jami berildi: ${formatPdfNumber(total)} kg`, 14, fY + 8);
-  doc.save(`qurulish_${fileSlug}.pdf`);
+  savePdfDocument(doc, `qurulish_${fileSlug}.pdf`);
 }
 
 function exportPDF(rows: any[], fileSlug: string, reportTitleLine: string, staffMap?: Map<string, string>, showDateGroups = false) {
@@ -885,7 +886,7 @@ function exportPDF(rows: any[], fileSlug: string, reportTitleLine: string, staff
   doc.setFont(PDF_CYRILLIC_FONT, 'bold');
   doc.text(`Общий итог топлива: ${formatPdfNumber(grandTotal)} кг`, margin, grandY, { align: 'left' });
 
-  doc.save(`hisobot_${fileSlug.replace(/[^\w.—]+/g, '_')}.pdf`);
+  savePdfDocument(doc, `hisobot_${fileSlug.replace(/[^\w.—]+/g, '_')}.pdf`);
 }
 
 // ─── SortArrow ────────────────────────────────────────────────────────────────
