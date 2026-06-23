@@ -2,44 +2,21 @@
 
 import { useEffect, useState } from "react";
 import AdminLayout from "@/components/admin/admin-layout";
-import { api } from "@/lib/api/client";
 import { onSocketEvent } from "@/lib/api/socket";
-import { subDays } from "date-fns";
-import { format } from "date-fns";
+import { fetchOverlimits, type StationBalance } from "@/lib/api/operator";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { parsePdfNumber } from "@/lib/utils/pdf-number";
-
-interface OverlimitRow {
-  id: string;
-  timestamp?: unknown;
-  stationId?: string;
-  category?: string;
-  staffName?: string;
-  staffCode?: string;
-  qanchaBerildi?: unknown;
-  qancha?: unknown;
-  qanchaOlindi?: unknown;
-  isOverLimit?: boolean;
-}
 
 export default function AdminOverlimitPage() {
-  const [rows, setRows] = useState<OverlimitRow[]>([]);
+  const [rows, setRows] = useState<StationBalance[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    const sinceDate = subDays(new Date(), 21);
 
     const load = async () => {
       try {
-        const startISO = sinceDate.toISOString().slice(0, 10);
-        const endISO = new Date().toISOString().slice(0, 10);
-        const res = await api.get<{ ok: true; items: OverlimitRow[] }>(
-          "/submissions",
-          { startDate: startISO, endDate: endISO, limit: 400 },
-        );
-        if (cancelled) return;
-        setRows(res.items.filter((r) => r.isOverLimit === true).slice(0, 120));
+        const items = await fetchOverlimits();
+        if (!cancelled) setRows(items.sort((a, b) => b.overlimitKg - a.overlimitKg));
       } catch (err) {
         console.warn("overlimit load:", err);
       }
@@ -47,6 +24,7 @@ export default function AdminOverlimitPage() {
 
     load();
     const offs = [
+      onSocketEvent("operator.balance.updated", load),
       onSocketEvent("submission.created", load),
       onSocketEvent("submission.updated", load),
       onSocketEvent("submission.deleted", load),
@@ -58,17 +36,7 @@ export default function AdminOverlimitPage() {
     };
   }, []);
 
-  function ts(m: unknown): number {
-    if (m == null) return 0;
-    if (typeof m === "number") return m;
-    if (typeof (m as { toMillis?: () => number }).toMillis === "function")
-      return (m as { toMillis: () => number }).toMillis();
-    return 0;
-  }
-
-  function kg(s: OverlimitRow): number {
-    return parsePdfNumber(s?.qanchaBerildi ?? s?.qancha ?? s?.qanchaOlindi ?? 0);
-  }
+  const total = rows.reduce((a, r) => a + r.overlimitKg, 0);
 
   return (
     <AdminLayout>
@@ -79,47 +47,60 @@ export default function AdminOverlimitPage() {
               <AlertTriangle className="w-9 h-9 text-danger" /> Limitdan oshganlar
             </h1>
             <p className="text-muted-foreground font-bold text-sm mt-2">
-              So‘nggi 21 kunda <code className="text-xs">isOverLimit</code> belgilangan yozuvlar.
+              Zaxiradan oshib ketgan (qarz) zapravkalar. Yoqilg‘i qabul qilinganda avtomatik yopiladi.
             </p>
           </div>
           <Link
-            href="/admin/hisobotlar/"
+            href="/admin/operator/"
             className="text-xs font-black uppercase text-primary hover:underline"
           >
-            To‘liq hisobotlar →
+            Operator bo‘limi →
           </Link>
         </div>
 
+        {total > 0 && (
+          <div className="rounded-2xl border-2 border-danger/30 bg-danger/5 px-6 py-4">
+            <span className="text-xs font-black uppercase tracking-widest text-danger">
+              Jami qarz
+            </span>
+            <p className="text-3xl font-black tabular-nums text-danger">
+              {total.toLocaleString()} kg
+            </p>
+          </div>
+        )}
+
         <div className="bg-background rounded-[28px] border-2 border-danger/20 overflow-x-auto shadow-sm">
-          <table className="w-full text-left min-w-[640px]">
+          <table className="w-full text-left min-w-[480px]">
             <thead className="bg-danger/10 text-[10px] font-black uppercase tracking-widest text-danger">
               <tr>
-                <th className="px-5 py-3">Vaqt</th>
                 <th className="px-5 py-3">Zapravka</th>
-                <th className="px-5 py-3">Kategoriya</th>
-                <th className="px-5 py-3">Xodim</th>
-                <th className="px-5 py-3 text-right">Miqdor</th>
+                <th className="px-5 py-3 text-right">Joriy balans</th>
+                <th className="px-5 py-3 text-right">Limitdan oshgan</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-primary/5 text-sm">
               {rows.map((s) => (
-                <tr key={s.id} className="hover:bg-muted/40">
-                  <td className="px-5 py-3 font-bold whitespace-nowrap">
-                    {format(new Date(ts(s.timestamp)), "dd.MM HH:mm")}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs">{s.stationId}</td>
-                  <td className="px-5 py-3 uppercase text-[10px] font-black">{s.category}</td>
+                <tr key={s.stationId} className="hover:bg-muted/40">
                   <td className="px-5 py-3">
-                    <span className="font-bold">{s.staffName}</span>
-                    <span className="block text-[10px] opacity-50">{s.staffCode}</span>
+                    <Link
+                      href={`/admin/operator/${s.stationId}/`}
+                      className="font-bold hover:underline"
+                    >
+                      {s.stationName ?? s.stationId}
+                    </Link>
                   </td>
-                  <td className="px-5 py-3 text-right font-black text-danger">{kg(s).toLocaleString()} kg</td>
+                  <td className="px-5 py-3 text-right font-bold tabular-nums">
+                    {s.balanceKg.toLocaleString()} kg
+                  </td>
+                  <td className="px-5 py-3 text-right font-black text-danger tabular-nums">
+                    {s.overlimitKg.toLocaleString()} kg
+                  </td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-5 py-16 text-center text-muted-foreground font-bold">
-                    Tanlangan davrda limitdan oshgan yozuv topilmadi
+                  <td colSpan={3} className="px-5 py-16 text-center text-muted-foreground font-bold">
+                    Limitdan oshgan zapravka yo‘q
                   </td>
                 </tr>
               )}

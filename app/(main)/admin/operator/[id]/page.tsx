@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import AdminLayout from "@/components/admin/admin-layout";
 import { StationGauge } from "@/components/admin/station-gauge";
+import { StationBalancePanel } from "@/components/admin/station-balance-panel";
 import { ERJU_LABEL, getOperatorCardById, getOperatorCards } from "../operator-data";
 
 type OperatorStationPageProps = {
@@ -79,6 +80,8 @@ export default async function OperatorStationPage({ params }: OperatorStationPag
             <StationGauge stationId={card.id} slug={card.slug} />
           </div>
         </section>
+
+        <StationBalancePanel stationId={card.id} />
       </div>
     </AdminLayout>
   );
